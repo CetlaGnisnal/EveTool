@@ -49,8 +49,8 @@ class Options {
         specific:  [args:    1,
                     argName: 'level',
                     type:    Integer,
-                    defVal:  1,
-                    desc: '\'Ore Specific\' skill level, for example \'Veldspar Refining\'. (0 though 5). Default 1.'],
+                    defVal:  2,
+                    desc: '\'Ore Specific\' skill level, for example \'Veldspar Refining\'. (0 though 5). Default 2.'],
 
         equipment: [args:    1,
                     argName: 'level',

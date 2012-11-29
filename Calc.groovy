@@ -225,10 +225,10 @@ class Calc {
 
     void setEffectiveYield() {
         // TODO Round to 1?
-        def a = (stationLevel / 100) + 0.375 *
+        def a = (stationLevel / 100) + (0.375 *
                 (1 + (refiningSkill * 0.02)) *
                 (1 + (effciencySkill * 0.04)) *
-                (1 + (specificSkill * 0.05))
+                (1 + (specificSkill * 0.05)))
         effectiveYield = a < 1 ? a : new BigDecimal('1.00')
 
         console.addStatus 'Effective Refining Yield'

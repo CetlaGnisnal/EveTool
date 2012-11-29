@@ -42,14 +42,16 @@ class Database {
         '''
 
         mysql.eachRow('''
-            SELECT typeID, typeName, volume, portionSize, categoryName
+            SELECT invTypes.typeID as typeID, typeName, volume, portionSize, categoryName
             FROM invTypes
             INNER JOIN invGroups ON invTypes.groupID = invGroups.groupID
             INNER JOIN invCategories ON invCategories.categoryID = invGroups.categoryID
-            WHERE (
-                invCategories.categoryName = 'Asteroid'
-                OR invGroups.groupName = 'Mineral'
-            ) AND invTypes.published = 1;
+            INNER JOIN (
+                SELECT DISTINCT typeID FROM invTypeMaterials
+                UNION
+                SELECT DISTINCT materialTypeID FROM invTypeMaterials
+            ) as invTypeMaterials ON invTypes.typeID = invTypeMaterials.typeID
+            WHERE invTypes.published = 1;
         ''') {row ->
             sql.execute 'INSERT INTO types (typeID, typeName, volume, portionSize, category) values (?, ?, ?, ?, ?)',
                         [row.typeID, row.typeName, row.volume, row.portionSize, row.categoryName]
@@ -64,20 +66,17 @@ class Database {
             );
         '''
 
-        def justAsteroids = sql.rows('SELECT typeID FROM types WHERE category = \'Asteroid\'').typeID
-        mysql.eachRow("""
+        mysql.eachRow('''
             SELECT invTypeMaterials.typeID as typeID, materialTypeID, quantity
             FROM invTypeMaterials
-            INNER JOIN invTypes ON invTypes.typeID = invTypeMaterials.materialTypeID
-            WHERE invTypeMaterials.typeID IN (${justAsteroids.collect {'?'}.join(', ')});
-        """, justAsteroids) {row->
+        ''') {row->
             sql.execute 'INSERT INTO refine (typeID, matID, quantity) VALUES (?, ?, ?)',
                         [row.typeID, row.materialTypeID, row.quantity]
         }
     }
 
     Collection<EveType> fetchAsteroids() {
-        sql.rows('SELECT * FROM types WHERE category = \'Asteroid\'').collect {row->
+        sql.rows('SELECT * FROM types').collect {row->
             new EveType(row.typeID, row.typeName, row.volume, row.portionSize, row.category)
         }
     }
