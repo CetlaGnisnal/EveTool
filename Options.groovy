@@ -8,11 +8,11 @@ class Options {
     private static final HEADER  = ''
     private static final FOOTER  = ''
     private static final OPTIONS = [
-        ore:       [args:    1,
+        asteroid:  [args:    1,
                     argName: 'type',
                     type:    String,
                     defVal:  null,
-                    desc:    'Fuzzy match ore type.'],
+                    desc:    'Fuzzy match asteroid type.'],
 
         quantity:  [args:    1,
                     argName: 'amount',

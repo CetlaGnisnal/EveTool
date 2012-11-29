@@ -11,7 +11,7 @@ class Database {
     private Sql sql
 
     Database() {
-        sql = Sql.newInstance('jdbc:h2:eve;TRACE_LEVEL_FILE=0;TRACE_LEVEL_SYSTEM_OUT=0',
+        sql = Sql.newInstance('jdbc:h2:eve;TRACE_LEVEL_FILE=1;TRACE_LEVEL_SYSTEM_OUT=0',
                               'sa', 'sa', 'org.h2.Driver')
     }
 
@@ -22,11 +22,11 @@ class Database {
         catch(SQLException e) {}
 
         if (!create && !getOptions().forceDB) {
-            println 'Local Database Available'
+            console.updateStatus 'Local Database Available'
             return
         }
 
-        println 'Building Local Database from predefined MySQL'
+        console.updateStatus 'Building Local Database from predefined MySQL'
 
         Sql mysql = Sql.newInstance('jdbc:mysql://localhost/eve?user=root')
 
@@ -35,7 +35,7 @@ class Database {
             CREATE TABLE types (
                 typeID INT PRIMARY KEY,
                 typeName VARCHAR(255),
-                volume INT,
+                volume DOUBLE,
                 portionSize INT,
                 category VARCHAR(255)
             );
@@ -73,6 +73,24 @@ class Database {
         """, justAsteroids) {row->
             sql.execute 'INSERT INTO refine (typeID, matID, quantity) VALUES (?, ?, ?)',
                         [row.typeID, row.materialTypeID, row.quantity]
+        }
+    }
+
+    Collection<EveType> fetchAsteroids() {
+        sql.rows('SELECT * FROM types WHERE category = \'Asteroid\'').collect {row->
+            new EveType(row.typeID, row.typeName, row.volume, row.portionSize, row.category)
+        }
+    }
+
+    Map<EveType, Integer> fetchRefineYield(EveType source) {
+        sql.rows('SELECT refine.typeID as sourceID,' +
+                 '       types.typeID as typeID,' +
+                 '       types.typeName as typeName,' +
+                 '       quantity as quantity ' +
+                 'FROM refine ' +
+                 'INNER JOIN types ON refine.matID = types.typeID ' +
+                 'WHERE refine.typeID = ?', [source.typeID]).collectEntries {row ->
+            [(new EveType(typeID: row.typeID, typeName: row.typeName)): row.quantity]
         }
     }
 
