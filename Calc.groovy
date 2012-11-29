@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils
 class Calc {
 
     EveType asteroid
+    EveRegion region
     Integer quantity
     Integer refinePortions
     Integer refineQuantity
@@ -14,10 +15,10 @@ class Calc {
     Integer stationLevel
     BigDecimal effectiveYield
 
-    Collection<EveType> asteroids
     Map<EveType, Integer> oreYields
 
-    FuzzyMatch asteroidMatcher
+    FuzzyMatch<EveType> typeMatcher
+    FuzzyMatch<EveRegion> regionMatcher
 
     static void main(String[] args) {
         bootstrap()
@@ -44,9 +45,9 @@ class Calc {
 
     Calc() {
         console.updateStatus 'Loading Values from Database'
-        asteroids = database.fetchAllTypes()
 
-        asteroidMatcher = new FuzzyMatch(corpus: asteroids, matchOn: { it.typeName })
+        typeMatcher = new FuzzyMatch(corpus: database.fetchAllTypes(), matchOn: { it.typeName })
+        regionMatcher = new FuzzyMatch(corpus: database.fetchAllRegions(), matchOn: { it.regionName })
     }
 
     private static void bootstrap() {
@@ -62,6 +63,7 @@ class Calc {
         setSkills()
         setEffectiveYield()
         setOreYields()
+        setRegion()
 
         Map<EveType, Map<String, Integer>> yields = oreYields.collectEntries {asteroid, base ->
             Integer yield = effectiveYield * base
@@ -125,7 +127,7 @@ class Calc {
 
             console.updateStatus base + 'Looking up price...' + ''.padLeft(30) + '┃┃' + '┃'.padLeft(xlarge + 3)
 
-            def price = eveCentral.getPrice(ore)
+            def price = eveCentral.getPrice(ore, region)
 
             def gross = price * details.total
             def tax = (gross * 0.015).setScale(2, BigDecimal.ROUND_DOWN)
@@ -171,7 +173,7 @@ class Calc {
 
         console.updateStatus base + 'Looking up price...' + ''.padLeft(30) + '┃┃' + '┃'.padLeft(xlarge + 3)
 
-        def price = eveCentral.getPrice(asteroid)
+        def price = eveCentral.getPrice(asteroid, region)
 
         def gross = price * quantity
         def tax = (gross * 0.015).setScale(2, BigDecimal.ROUND_DOWN)
@@ -241,7 +243,7 @@ class Calc {
         String optAsteroid = options['material']
         Collection optAsteroidMatch = []
         if (optAsteroid) {
-            optAsteroidMatch = asteroidMatcher.findAll(optAsteroid)
+            optAsteroidMatch = typeMatcher.findAll(optAsteroid)
             if (optAsteroidMatch.size() == 1) {
                 asteroid = optAsteroidMatch.first()
             }
@@ -249,12 +251,31 @@ class Calc {
 
         if(!asteroid) {
             console.updateStatus 'Set the asteroid type.'
-            asteroid = withConfirm { askFuzzy('Asteroid Type?', asteroidMatcher, optAsteroidMatch) }
+            asteroid = withConfirm { askFuzzy('Asteroid Type?', typeMatcher, optAsteroidMatch) }
         }
 
         console.addStatus "Asteroid Type: ${asteroid}"
         console.addStatus "\tVolume: ${asteroid.volume}m3"
         console.addStatus "\tRefine: ${asteroid.portionSize}units"
+    }
+
+    void setRegion() {
+        String optRegion = options['region']
+        Collection optRegionMatch = []
+        if(optRegion) {
+            optRegionMatch = regionMatcher.findAll(optRegion)
+            if (optRegionMatch.size() == 1) {
+                region = optRegionMatch.first()
+            }
+        }
+
+        if(!region) {
+            console.updateStatus 'Set the region for price lookup.'
+            region = withConfirm { askFuzzy('Region?', regionMatcher, optRegionMatch) }
+        }
+
+        console.addStatus 'Price Quote Region'
+        console.addStatus "\tRegion: ${region.regionName}"
     }
 
     void setQuantity() {

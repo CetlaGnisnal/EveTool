@@ -73,12 +73,32 @@ class Database {
             sql.execute 'INSERT INTO refine (typeID, matID, quantity) VALUES (?, ?, ?)',
                         [row.typeID, row.materialTypeID, row.quantity]
         }
+
+        sql.execute 'DROP TABLE IF EXISTS regions;'
+        sql.execute '''
+            CREATE TABLE regions (
+                regionID INT,
+                regionName varchar(255),
+            );
+        '''
+
+        mysql.eachRow('''
+            SELECT regionID, regionName
+            FROM mapRegions;
+        ''') {row->
+            sql.execute 'INSERT INTO regions (regionID, regionName) VALUES (?, ?)',
+                        [row.regionID, row.regionName]
+        }
     }
 
     Collection<EveType> fetchAllTypes() {
         sql.rows('SELECT * FROM types').collect {row->
             new EveType(row.typeID, row.typeName, row.volume, row.portionSize, row.category)
         }
+    }
+
+    Collection<EveRegion> fetchAllRegions() {
+        sql.rows('SELECT * FROM regions').collect {row-> new EveRegion(row.regionID, row.regionName) }
     }
 
     Map<EveType, Integer> fetchRefineYield(EveType source) {

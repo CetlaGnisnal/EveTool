@@ -10,8 +10,10 @@ class EveCentral {
     static final MARKETSTAT = "$BASE_URL/marketstat"
     static final QUICKLOOK ="$BASE_URL/quicklook"
 
-    BigDecimal getPrice(EveType type, def systems = null) {
-        String query = "$QUICKLOOK?typeid=${type.typeID}&regionlimit=10000068"
+    BigDecimal getPrice(EveType type, EveRegion region = null) {
+        String query = "$QUICKLOOK?typeid=${type.typeID}"
+        query = region ? query + "&regionlimit=${region.regionID}" : query
+
         String response = query.toURL().getText()
         //println response
         GPathResult xml = slurper.parseText(response)
