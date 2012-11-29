@@ -4,75 +4,91 @@ import org.apache.commons.cli.HelpFormatter
 @Singleton
 class Options {
 
-    private static final USAGE   = 'calc.groovy [options]'
+    private static final USAGE   = 'Calc [options]'
     private static final HEADER  = ''
     private static final FOOTER  = ''
     private static final OPTIONS = [
-        asteroid:  [args:    1,
+        material:  [args:    1,
                     argName: 'type',
+                    short:   'm',
                     type:    String,
                     defVal:  null,
-                    desc:    'Fuzzy match asteroid type.'],
+                    desc:    'The type of material to be used in calculations. This will be fuzzy matched, for example \'veld\' would match to \'Veldspar\''],
 
         quantity:  [args:    1,
                     argName: 'amount',
+                    short:   'q',
                     type:    BigDecimal,
                     defVal:  null,
-                    desc:    'Amount of ore.'],
+                    desc:    'The amount of material to be used in calculations. This by default is given in units but can be given in volume by using the \'--volume\' option.'],
 
         units:     [args:    0,
                     argName: '',
                     type:    Boolean,
                     defVal:  true,
-                    desc:    'Quantity given in units. Default.'],
+                    desc:    'Specifies that the quantity is given in \'Units\'. This is the default behavior and using this option changes nothing.'],
 
         volume:    [args:    0,
                     argName: '',
                     type:    Boolean,
                     defVal:  false,
-                    desc:   'Quantity given in volume.'],
+                    desc:   'Specifies that the quantity is given in a volume of cubic meters.'],
 
         refining:  [args:    1,
                     argName: 'level',
                     type:    Integer,
                     defVal:  5,
-                    desc:    'Refining skill level (1 though 5). Default 5.'],
+                    desc:    '\'Refining\' skill level (0 though 5). Default 5.'],
 
-        effciency: [args:    1,
+        efficiency:[args:    1,
                     argName: 'level',
                     type:    Integer,
-                    defVal:  5,
-                    desc:   'Refining Effciency skill level (1 though 5). Default 5.'],
+                    defVal:  3,
+                    desc:   '\'Refining Efficiency\' skill level (0 though 5). Default 3.'],
 
         specific:  [args:    1,
                     argName: 'level',
                     type:    Integer,
-                    defVal:  5,
-                    desc: 'Ore Specific skill level (1 though 5). Default 5.'],
+                    defVal:  1,
+                    desc: '\'Ore Specific\' skill level, for example \'Veldspar Refining\'. (0 though 5). Default 1.'],
 
-        station:   [args:    1,
+        equipment: [args:    1,
                     argName: 'level',
                     type:    BigDecimal,
                     defVal:  '50.0'.toBigDecimal(),
-                    desc:    'Station Equipment level (37.5 or 50.0). Default 50.0.'],
+                    desc:    '\'Station Equipment\' level (37.5 or 50.0). This can be found at the top right of the refining window. Default 50.0.'],
 
-        system:    [args:    1,
-                    argName: 'system',
+        region:    [args:    1,
+                    argName: 'name',
+                    short:   'r',
                     type:    String,
                     defVal:  null,
-                    desc:    'Fuzzy match System refined ore will be sold in.'],
+                    desc:    'The region to check Eve Central for prices. This helps make estimation more accurate. The name is fuzzy matched so \'Vervendo\' would find \'Verge Vendor\'. If no region is given all of space will be searched.'],
 
         forceDB:   [args:    0,
                     argName: '',
                     type:    Boolean,
                     defVal:  false,
-                    desc:    'Force the local database to be reloaded from the EVE toolkit ported MySQL database.'],
+                    desc:    'Force the local database to be reloaded from the CPP Static Dump database. The URL to the database can be given by the \'--cppDump\' option.'],
+
+        cppDump:   [args:    1,
+                    argName: 'url',
+                    type:    String,
+                    defVal:  'jdbc:mysql://localhost/eve?user=root',
+                    desc:    'Connection string pointing to the CPP Static Dump database. Currently MySQL or H2 databases are supported. This is only needed when (re)building the local database. Default: jdbc:mysql://localhost/eve?user=root'],
 
         printDB:   [args:    0,
                     argName: '',
                     type:    Boolean,
                     defVal:  false,
-                    desc:    'Print the values in the local database rather than calculate.']
+                    desc:    'Print the values in the local database rather than calculate. TODO move this to a command.'],
+
+        verbose:   [args:    0,
+                    argName: '',
+                    short:   'v',
+                    type:    Boolean,
+                    defVal:  false,
+                    desc:    'Print lots of details about the calculation.'],
     ]
 
     private options

@@ -199,15 +199,15 @@ class Calc {
 
         console.addLine()
         if(netTotal > net) {
-            console.addStatus 'Refining is more profitable.', 'GREEN'
+            console.addStatus "Refining is more profitable by ${(100 * (1 - (net / netTotal))).setScale(2, BigDecimal.ROUND_DOWN)}%.", 'GREEN'
         } else {
-            console.addStatus 'Selling is more profitable.', 'RED'
+            console.addStatus "Selling is more profitable by ${(100 * (1 - (netTotal / net))).setScale(2, BigDecimal.ROUND_DOWN)}%.", 'RED'
         }
         console.addLine()
     }
 
     private String pad(String s, int n, String p) {
-        // String Utils is choaking on the pad characters
+        // StringUtils is croaking on the pad characters
         def nn = n - s.length() - 1
         nn = nn < 0 ? 0 : nn
         (p * 1) + s + (p * nn)
@@ -238,7 +238,7 @@ class Calc {
     }
 
     void setAsteroid() {
-        String optAsteroid = options['asteroid']
+        String optAsteroid = options['material']
         Collection optAsteroidMatch = []
         if (optAsteroid) {
             optAsteroidMatch = asteroidMatcher.findAll(optAsteroid)
@@ -288,9 +288,9 @@ class Calc {
 
     void setSkills() {
         refiningSkill = options['refining']
-        effciencySkill = options['effciency']
+        effciencySkill = options['efficiency']
         specificSkill = options['specific']
-        stationLevel = options['station']
+        stationLevel = options['equipment']
     }
 
     private <V> V withConfirm(Closure<V> question) {

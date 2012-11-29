@@ -28,7 +28,7 @@ class Database {
 
         console.updateStatus 'Building Local Database from predefined MySQL'
 
-        Sql mysql = Sql.newInstance('jdbc:mysql://localhost/eve?user=root')
+        Sql mysql = Sql.newInstance(options['cppDump'])
 
         sql.execute 'DROP TABLE IF EXISTS types;'
         sql.execute '''
