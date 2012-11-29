@@ -44,7 +44,7 @@ class Calc {
 
     Calc() {
         console.updateStatus 'Loading Values from Database'
-        asteroids = database.fetchAsteroids()
+        asteroids = database.fetchAllTypes()
 
         asteroidMatcher = new FuzzyMatch(corpus: asteroids, matchOn: { it.typeName })
     }

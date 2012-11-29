@@ -16,9 +16,20 @@ class FuzzyMatch<T> {
     Closure matchOn = { return it }
 
     Collection<T> findAll(String specimin) {
-        def soundPass = pick(sounds(specimin, corpus), DefaultGroovyMethods.&max)
-        def distancePass = take(10, distances(specimin, soundPass).sort {a, b-> a.value <=> b.value  }.keySet().toList())
-        return take(5, distancePass)
+        def exactMatch = corpus.find { matchOn(it) == specimin }
+        if (exactMatch) return [exactMatch]
+
+        def pass = corpus
+        pass = filterOnCapitals specimin, pass
+        pass = pickMax sounds(specimin, pass)
+        pass = pickMin distances(specimin, pass), 1
+        return take(5, pass)
+    }
+
+    private Collection<T> filterOnCapitals(String specimin, Collection<T> corpus) {
+        def tokens = specimin.split(' ')
+        tokens = tokens.collect { it[0].toLowerCase() }
+        corpus.findAll { matchOn(it).toLowerCase() ==~ '^' + tokens.join(/.*\s/) + '.*' }
     }
 
     private Map<T, Integer> distances(String specimin, Collection<T> corpus) {
@@ -27,11 +38,13 @@ class FuzzyMatch<T> {
 
     private int distance(String a, String b) {
         // Lower is better.
-        StringUtils.getLevenshteinDistance((java.lang.CharSequence) a, (java.lang.CharSequence) b)
+        StringUtils.getLevenshteinDistance((java.lang.CharSequence) a.toLowerCase(), (java.lang.CharSequence) b.toLowerCase())
     }
 
     private Map<T, Integer> sounds(String specimin, Collection<T> corpus) {
-        corpus.collectEntries { [(it): sound(specimin, matchOn(it))] }
+        corpus.collectEntries {
+            [(it): sound(specimin, matchOn(it))]
+        }
     }
 
     private int sound(String a, String b) {
@@ -39,9 +52,17 @@ class FuzzyMatch<T> {
         soundex.difference(a, b)
     }
 
-    private Collection<T> pick(Map<T, Integer> computed, Closure f) {
+    private Collection<T> pickMin(Map<T, Integer> computed, Integer threshold = null) {
+        _pick(computed, DefaultGroovyMethods.&min, {i, k, v-> threshold ? v < i + threshold || v == i : v == i})
+    }
+
+    private Collection<T> pickMax(Map<T, Integer> computed, Integer threshold = null) {
+        _pick(computed, DefaultGroovyMethods.&max, {i, k, v-> threshold ? v > i - threshold || v == i : v == i})
+    }
+
+    private Collection<T> _pick(Map<T, Integer> computed, Closure f, Closure t) {
         Integer i = f(computed.values())
-        computed.findAll {k,v-> v == i}.keySet().toList()
+        computed.findAll(t.curry(i)).keySet().toList()
     }
 
     private Collection<T> take(Integer i, Collection<T> c) {

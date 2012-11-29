@@ -75,7 +75,7 @@ class Database {
         }
     }
 
-    Collection<EveType> fetchAsteroids() {
+    Collection<EveType> fetchAllTypes() {
         sql.rows('SELECT * FROM types').collect {row->
             new EveType(row.typeID, row.typeName, row.volume, row.portionSize, row.category)
         }
