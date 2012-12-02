@@ -58,6 +58,19 @@ class Options {
                     defVal:  '50.0'.toBigDecimal(),
                     desc:    '\'Station Equipment\' level (37.5 or 50.0). This can be found at the top right of the refining window. Default 50.0.'],
 
+        station:   [args:    1,
+                    argName: 'standing',
+                    short:   's',
+                    type:    BigDecimal,
+                    defVal:  '0'.toBigDecimal(),
+                    desc:    '\'Station Standing\' affects the amount of refined materials that a station keeps. Default 0.'],
+
+        corpTax:   [args:    1,
+                    argName: 'rate',
+                    type:    BigDecimal,
+                    defVal:  '11.0'.toBigDecimal(),
+                    desc:     'The \'Corporate Tax Rate\' is use in calculating the net sale since a corporation takes a percentage of all sales. Default 11.0%'],
+
         region:    [args:    1,
                     argName: 'name',
                     short:   'r',

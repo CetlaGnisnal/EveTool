@@ -14,6 +14,8 @@ class Calc {
     Integer specificSkill
     Integer stationLevel
     BigDecimal effectiveYield
+    BigDecimal stationStanding
+    BigDecimal corpTaxRate
 
     Map<EveType, Integer> oreYields
 
@@ -67,10 +69,9 @@ class Calc {
 
         Map<EveType, Map<String, Integer>> yields = oreYields.collectEntries {asteroid, base ->
             Integer yield = effectiveYield * base
-            BigDecimal standing = new BigDecimal('1.2')
-            BigDecimal taxRate = 5 - (new BigDecimal('0.75') * standing)
+            BigDecimal taxRate = 5 - (new BigDecimal('0.75') * stationStanding)
             taxRate = taxRate < 0 ? BigDecimal.ZERO : taxRate / 100
-            taxRate = taxRate.setScale(4)
+            taxRate = taxRate.setScale(4, BigDecimal.ROUND_DOWN)
             Integer tax = yield * taxRate
             Integer taxedYield = yield - tax
             Integer total = taxedYield * refinePortions
@@ -132,7 +133,7 @@ class Calc {
             def gross = price * details.total
             def tax = (gross * 0.015).setScale(2, BigDecimal.ROUND_DOWN)
             def taxedGross = (gross - tax).setScale(2, BigDecimal.ROUND_DOWN)
-            def corp = (taxedGross * 0.11).setScale(2, BigDecimal.ROUND_DOWN)
+            def corp = (taxedGross * corpTaxRate).setScale(2, BigDecimal.ROUND_DOWN)
             def net = (taxedGross - corp).setScale(2, BigDecimal.ROUND_DOWN)
 
             details.net = net
@@ -305,6 +306,9 @@ class Calc {
         console.addStatus "\t  Refine: ${refineQuantity}"
         console.addStatus "\tPortions: ${refinePortions}"
         console.addStatus "\t  Remain: ${quantity - refineQuantity}"
+
+        stationStanding = options['station']
+        corpTaxRate = options['corpTax'] / 100
     }
 
     void setSkills() {
